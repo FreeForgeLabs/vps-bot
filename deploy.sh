@@ -3,12 +3,15 @@
 # Stages files into ~/vps-bot-deploy/ on the server, then runs install.sh
 # (which lives in that staging dir and handles sudo install + systemd reload).
 #
-# Usage: ./deploy.sh
+# Usage: VPS_BOT_HOST=<your-host> ./deploy.sh
 # Requires: ssh access to $HOST as a user with sudo.
+#   <your-host> is typically an SSH host alias from your ~/.ssh/config.
 
 set -euo pipefail
 
-HOST="${VPS_BOT_HOST:-webserver1}"
+# Fail closed: no default host. The real deploy target is private infra and
+# must not be baked into a public repo — set it via the environment instead.
+HOST="${VPS_BOT_HOST:?set VPS_BOT_HOST to your deploy target (e.g. an ~/.ssh/config alias)}"
 
 echo "==> Deploying to $HOST"
 

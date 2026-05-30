@@ -32,3 +32,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# --- Private dev notes (added during infra-name sweep) ---
+# Session handoff/planning notes name internal infra (deploy hosts, paths).
+# Keep local-only until scrubbed — same policy as CLAUDE.md above.
+TODO.md

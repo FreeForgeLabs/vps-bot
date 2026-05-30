@@ -98,10 +98,10 @@ sudo chown -R serverbot:serverbot /opt/bots/server /var/lib/serverbot
 From your local machine:
 
 ```bash
-./deploy.sh
+VPS_BOT_HOST=<your-host> ./deploy.sh
 ```
 
-This copies the bot scripts, the systemd unit files (in `systemd/`), and the sudoers file (in `sudoers/`) into place, validates the sudoers file before installing it, reloads systemd, enables the daily-report and weekly-upgrade timers, and restarts the bot. By default it deploys to host `webserver1` — override with `VPS_BOT_HOST=otherhost ./deploy.sh`.
+This copies the bot scripts, the systemd unit files (in `systemd/`), and the sudoers file (in `sudoers/`) into place, validates the sudoers file before installing it, reloads systemd, enables the daily-report and weekly-upgrade timers, and restarts the bot. Set the deploy target via the `VPS_BOT_HOST` environment variable — typically an SSH host alias from your `~/.ssh/config` (e.g. `VPS_BOT_HOST=my-server ./deploy.sh`). It is required; there is no default.
 
 The deploy script is the only supported way to push changes — running individual `scp`s by hand is how config and code drift apart.
 

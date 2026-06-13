@@ -63,7 +63,7 @@ The daily report runs automatically on a systemd timer (default: every day at 7A
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/dustinkznet/vps-bot.git
+git clone https://github.com/FreeForgeLabs/vps-bot.git
 cd vps-bot
 ```
 

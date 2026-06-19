@@ -44,7 +44,7 @@ Load: 0.02, 0.01, 0.00
 - **`/status`** — quick service status snapshot
 - **`/upgrade`** — run `apt upgrade` now (confirmation required)
 - **`/reboot`** — reboot with a two-step confirmation and 60-second expiry
-- **`/logs <service> [lines]`** — tail recent journal logs for a monitored service (default: 20 lines, max 50)
+- **`/logs <service>`** — view journal logs for a monitored service: tap **⚠️ Errors** for just error/warning lines, or **📄 Recent** for the last 40 lines of activity (`/logs` with no service shows a picker)
 - **`/help`** — command list
 - **Proactive alerts** — background monitoring fires a Telegram message when a service goes down or disk usage exceeds your threshold, and a follow-up when it recovers
 

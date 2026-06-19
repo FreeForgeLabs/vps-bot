@@ -7,7 +7,7 @@ Commands (also available as tap buttons):
   /upgrade  → run apt upgrade now (inline confirm/cancel buttons)
   /reboot   → reboot the server (inline confirm/cancel buttons)
   /status   → quick service status check
-  /logs     → tail recent logs for a service (e.g. /logs nginx 30)
+  /logs     → view logs for a service (errors-only or recent activity)
   /help     → list commands and show button keyboard
 
 Proactive alerts (checked every ALERT_INTERVAL_MINUTES):
@@ -280,8 +280,18 @@ def run_proactive_checks():
 
 
 def fetch_and_send_logs(svc, errors_only=False):
-    """Fetch journalctl output for a service and send it to Telegram."""
-    n_lines = 200 if errors_only else 20
+    """Fetch journalctl output for a service and send it to Telegram.
+
+    Two modes a network admin actually wants on a phone:
+      - errors_only=True  → scan the recent window, show only error/warn lines
+                            (the "is anything broken?" view)
+      - errors_only=False → last 40 lines of raw activity
+                            (the "what's happening right now?" view)
+    """
+    # Errors mode scans a wider window (200) so we don't miss errors that
+    # scrolled past; recent mode shows 40 lines — enough context to troubleshoot
+    # without flooding the chat (output is capped at 3500 chars below anyway).
+    n_lines = 200 if errors_only else 40
     result = subprocess.run(
         ["journalctl", "-u", svc, "-n", str(n_lines), "--no-pager"],
         capture_output=True, text=True
@@ -293,9 +303,10 @@ def fetch_and_send_logs(svc, errors_only=False):
         if not lines:
             send(f"✅ No errors/warnings found in recent `{svc}` logs.")
             return
-        label = f"Errors: {svc}"
+        # Lead with the count so severity is clear before you even read the lines.
+        label = f"⚠️ Errors: {svc} ({len(lines)} found)"
     else:
-        label = f"Logs: {svc} (last {n_lines} lines)"
+        label = f"📄 Recent: {svc} (last {len(lines)} lines)"
     out = "\n".join(lines) or "No log output."
     if len(out) > 3500:
         out = "..." + out[-3500:]
@@ -312,9 +323,10 @@ def handle_callback(callback_id, data):
         send(
             f"📜 *{svc} logs* — what do you want to see?",
             reply_markup={
+                # Errors first: it's the reason you usually open logs.
                 "inline_keyboard": [[
-                    {"text": "Last 20 lines",  "callback_data": f"logs_tail:{svc}"},
-                    {"text": "Errors only",    "callback_data": f"logs_errors:{svc}"},
+                    {"text": "⚠️ Errors",          "callback_data": f"logs_errors:{svc}"},
+                    {"text": "📄 Recent (40)",     "callback_data": f"logs_tail:{svc}"},
                 ]]
             },
         )
@@ -370,7 +382,7 @@ def handle_message(raw_text):
             "  /status — quick service check\n"
             "  /upgrade — run apt upgrade\n"
             "  /reboot — reboot server\n"
-            "  /logs <service> [lines] — tail service logs\n"
+            "  /logs <service> — view service logs (errors or recent)\n"
             "  /help — this message",
             reply_markup=MAIN_KEYBOARD,
         )
@@ -454,7 +466,7 @@ def register_commands():
     commands = [
         {"command": "report",  "description": "Full health report"},
         {"command": "status",  "description": "Quick service check"},
-        {"command": "logs",    "description": "Tail service logs (e.g. /logs nginx 30)"},
+        {"command": "logs",    "description": "View service logs (errors or recent)"},
         {"command": "upgrade", "description": "Run apt upgrade"},
         {"command": "reboot",  "description": "Reboot the server"},
         {"command": "help",    "description": "Show commands and button keyboard"},

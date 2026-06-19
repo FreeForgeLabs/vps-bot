@@ -29,18 +29,13 @@ Load: 0.02, 0.01, 0.00
   • shop.example.com: ✅ 60d
   • staging.example.com: ⚠️ 11d
 
-📬 Contact Forms:
-  • mysite.com: ✅
-  • shop.example.com: ✅
-  • staging.example.com: ✅
-
 📦 Updates: 3 package(s) pending
 🕐 Last upgrade: 2026-04-28 09:00:00
 ```
 
 ## Features
 
-- **`/report`** — full server health report (disk, memory, load, services, SSL cert expiry, contact form health, pending updates)
+- **`/report`** — full server health report (disk, memory, load, services, SSL cert expiry, pending updates)
 - **`/status`** — quick service status snapshot
 - **`/upgrade`** — run `apt upgrade` now (confirmation required)
 - **`/reboot`** — reboot with a two-step confirmation and 60-second expiry
@@ -77,7 +72,7 @@ sudo nano /etc/bots/server.env
 
 Fill in your Telegram bot token, chat ID, and the lists you want monitored:
 
-- `MONITORED_DOMAINS` — checked for SSL cert expiry and `/api/health` endpoint status
+- `MONITORED_DOMAINS` — checked for SSL cert expiry
 - `MONITORED_SERVICES` — systemd service names checked in `/status`, daily reports, and proactive alerts
 - `DISK_WARN_PCT` — disk usage percentage that triggers a proactive alert (default: 80)
 - `CERT_WARN_DAYS` — days before SSL expiry to show a warning in reports (default: 14)
@@ -104,10 +99,6 @@ VPS_BOT_HOST=<your-host> ./deploy.sh
 This copies the bot scripts, the systemd unit files (in `systemd/`), and the sudoers file (in `sudoers/`) into place, validates the sudoers file before installing it, reloads systemd, enables the daily-report and weekly-upgrade timers, and restarts the bot. Set the deploy target via the `VPS_BOT_HOST` environment variable — typically an SSH host alias from your `~/.ssh/config` (e.g. `VPS_BOT_HOST=my-server ./deploy.sh`). It is required; there is no default.
 
 The deploy script is the only supported way to push changes — running individual `scp`s by hand is how config and code drift apart.
-
-## Contact form health checks
-
-The daily report checks `https://<domain>/api/health` for each domain in `MONITORED_DOMAINS`. This endpoint should return HTTP 200 when healthy. If a domain doesn't have this endpoint it will show `❌ (HTTP 404)` in the report — that's expected and not a problem. To skip the check for a domain, simply leave it out of `MONITORED_DOMAINS` and monitor it separately.
 
 ## Schedules
 

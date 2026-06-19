@@ -1,6 +1,6 @@
 #!/bin/bash
 # Daily server health report — sends summary to Telegram
-# Domains monitored for SSL and form health are set in server.env as:
+# Domains monitored for SSL expiry are set in server.env as:
 #   MONITORED_DOMAINS="example.com another.com"
 set -euo pipefail
 
@@ -86,25 +86,6 @@ FAILED_SSH=$(journalctl -u ssh --since "24 hours ago" 2>/dev/null | grep -c "Fai
 # --- Last upgrade ---
 LAST_UPGRADE=$(grep "End-Date" /var/log/apt/history.log 2>/dev/null | tail -1 | awk '{print $2, $3}' || echo "unknown")
 
-# --- Contact form endpoint health checks (loops over MONITORED_DOMAINS) ---
-check_form() {
-    local url="$1"
-    local endpoint="$2"
-    local response
-    response=$(curl -s -o /dev/null -w "%{http_code}" "$url" \
-        --max-time 10 2>/dev/null || echo "000")
-    if [ "$response" = "200" ]; then
-        echo "  • ${endpoint}: ✅"
-    else
-        echo "  • ${endpoint}: ❌ (HTTP ${response})"
-    fi
-}
-
-FORM_LINES=""
-for domain in ${MONITORED_DOMAINS:-}; do
-    FORM_LINES+="$(check_form "https://${domain}/api/health" "$domain")"$'\n'
-done
-
 # --- Build message ---
 disk_warn=""
 [ "$DISK_PCT" -ge "${DISK_WARN_PCT:-80}" ] && disk_warn=" ⚠️"
@@ -128,9 +109,6 @@ ${SERVICE_LINES}
 
 🌐 *SSL Certificates:*
 ${CERT_LINES}
-📬 *Contact Forms:*
-${FORM_LINES}
-
 📦 *Updates:* ${UPDATES} package(s) pending
 🕐 *Last upgrade:* ${LAST_UPGRADE}
 ${REBOOT_REQUIRED}"
